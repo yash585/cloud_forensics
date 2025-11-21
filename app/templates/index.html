@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AWS Cloud Memory Forensics</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script defer src="/static/script.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+    <h1 class="title">AWS Memory Forensics Dashboard</h1>
+    <p class="subtitle">Volatility • Snapshots • Extraction • Reports</p>
+
+    <div class="card">
+        <h2>Start Analysis</h2>
+
+        <form method="POST" action="/run-analysis">
+
+            <label>Volatility Plugin</label>
+            <select name="plugin" required>
+                <option value="pslist">pslist</option>
+                <option value="psscan">psscan</option>
+                <option value="dlllist">dlllist</option>
+                <option value="handles">handles</option>
+                <option value="cmdline">cmdline</option>
+            </select>
+
+            <label>AWS Instance ID</label>
+            <input type="text" name="instance_id" placeholder="i-026hd82ks92" required>
+
+            <button type="submit" class="btn">Start Analysis</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

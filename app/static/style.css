@@ -1,0 +1,79 @@
+/* Global dark theme */
+body {
+    margin: 0;
+    padding: 0;
+    background: #0d0f12;
+    color: #e4e6eb;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Center container */
+.container {
+    width: 90%;
+    max-width: 900px;
+    margin: auto;
+    margin-top: 40px;
+}
+
+/* Titles */
+.title {
+    text-align: center;
+    color: #4dc4ff;
+    font-size: 2.2rem;
+    font-weight: 600;
+}
+
+.subtitle {
+    text-align: center;
+    color: #9fa6b2;
+    margin-bottom: 30px;
+}
+
+/* Cards */
+.card {
+    background: #171a1f;
+    border: 1px solid #2a2f36;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 0 20px rgba(0, 180, 255, 0.1);
+}
+
+/* Inputs */
+input, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #3a4048;
+    background: #0f1114;
+    color: #e4e6eb;
+    margin-bottom: 15px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background: #0099ff;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 1rem;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #0bb2ff;
+}
+
+/* Preformatted output */
+.output-box {
+    background: #0b0e12;
+    border: 1px solid #2a2f36;
+    padding: 15px;
+    border-radius: 10px;
+    max-height: 500px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}

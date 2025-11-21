@@ -1,0 +1,12 @@
+Flask==3.0.3
+boto3==1.34.30
+botocore==1.34.30
+
+# For running external commands + parsing
+psutil==5.9.8
+
+# If you will parse JSON outputs from volatility plugins
+python-dateutil==2.8.2
+
+# Optional but recommended for YAML config
+PyYAML==6.0.1

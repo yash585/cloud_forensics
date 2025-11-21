@@ -1,0 +1,23 @@
+aws:
+  region: "ap-south-1"
+  access_key: "YOUR_ACCESS_KEY"        # optional if using IAM role
+  secret_key: "YOUR_SECRET_KEY"        # optional if using IAM role
+  snapshot_description: "Memory Forensics Snapshot"
+
+paths:
+  extraction_dir: "/tmp/memory_extract"
+  volatility_path: "/usr/bin/volatility"   # update based on your environment
+  reports_dir: "app/reports"
+
+volatility:
+  profile: "Win10x64_19041"
+  timeout: 300          # plugin timeout in seconds
+
+logging:
+  level: "INFO"
+  file: "logs/app.log"
+
+app:
+  secret_key: "replace_with_random_string"
+  host: "0.0.0.0"
+  port: 5000
