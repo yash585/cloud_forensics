@@ -2,56 +2,98 @@ import boto3
 import time
 import os
 from botocore.exceptions import ClientError
+import yaml
+
 
 def take_snapshot_and_download(instance_id):
-    """
-    1. Creates an EBS snapshot from the given EC2 instance.
-    2. Waits until snapshot is ready.
-    3. Downloads the snapshot to local storage.
-    """
 
-    ec2 = boto3.client("ec2")
+    CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config/config.yaml")
+
+    with open(CONFIG_PATH, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    aws_key    = cfg["aws"]["access_key"]
+    aws_secret = cfg["aws"]["secret_key"]
+    aws_region = cfg["aws"]["region"]
+
+    ec2 = boto3.client(
+        "ec2",
+        aws_access_key_id=aws_key,
+        aws_secret_access_key=aws_secret,
+        region_name=aws_region
+    )
+
+    ebs = boto3.client(
+        "ebs",
+        aws_access_key_id=aws_key,
+        aws_secret_access_key=aws_secret,
+        region_name=aws_region
+    )
 
     try:
-        # Get root volume ID of the instance
-        volumes = ec2.describe_instances(InstanceIds=[instance_id])
-        root_volume = volumes["Reservations"][0]["Instances"][0]["BlockDeviceMappings"][0]["Ebs"]["VolumeId"]
+        # -------------------------------------------------
+        # STEP 0: Get root volume
+        # -------------------------------------------------
+        instance = ec2.describe_instances(InstanceIds=[instance_id])
+        inst = instance["Reservations"][0]["Instances"][0]
 
-        # Step 1: Create snapshot
-        snapshot = ec2.create_snapshot(
+        root_device = inst["RootDeviceName"]
+
+        root_volume = None
+        for dev in inst["BlockDeviceMappings"]:
+            if dev["DeviceName"] == root_device:
+                root_volume = dev["Ebs"]["VolumeId"]
+                break
+
+        if not root_volume:
+            raise Exception("Unable to locate root EBS volume")
+
+        print(f"[+] Root volume: {root_volume}")
+
+        # -------------------------------------------------
+        # STEP 1: Create REAL EC2 snapshot
+        # -------------------------------------------------
+        print("[+] Creating snapshot using EC2 API...")
+        snap_resp = ec2.create_snapshot(
             VolumeId=root_volume,
-            Description=f"Memory forensics snapshot for {instance_id}"
+            Description=f"Memory forensics snapshot of {instance_id}"
         )
-        snapshot_id = snapshot["SnapshotId"]
 
-        print(f"[+] Snapshot created: {snapshot_id}")
+        snapshot_id = snap_resp["SnapshotId"]
+        print(f"[+] Snapshot started: {snapshot_id}")
 
-        # Step 2: Wait for snapshot to complete
-        print("[+] Waiting for snapshot to finish...")
-        waiter = ec2.get_waiter("snapshot_completed")
+        # -------------------------------------------------
+        # STEP 2: Wait until completed
+        # -------------------------------------------------
+        print("[+] Waiting for snapshot to complete...")
+        waiter = ec2.get_waiter('snapshot_completed')
         waiter.wait(SnapshotIds=[snapshot_id])
+        print("[+] Snapshot completed.")
 
-        print("[+] Snapshot ready.")
-
-        # Step 3: Download snapshot using EBS direct APIs
-        return download_snapshot(snapshot_id)
+        # -------------------------------------------------
+        # STEP 3: Use EBS direct API to read blocks
+        # -------------------------------------------------
+        return download_snapshot(snapshot_id, aws_key, aws_secret, aws_region)
 
     except ClientError as e:
         print("AWS ERROR:", str(e))
         return None
 
 
-def download_snapshot(snapshot_id):
-    """
-    Downloads snapshot blocks using EBS direct APIs.
-    Saves a raw file locally and returns its path.
-    """
-    ebs = boto3.client("ebs")
+
+def download_snapshot(snapshot_id, aws_key, aws_secret, aws_region):
+
+    ebs = boto3.client(
+        "ebs",
+        aws_access_key_id=aws_key,
+        aws_secret_access_key=aws_secret,
+        region_name=aws_region
+    )
 
     try:
-        snapshot = ebs.get_snapshot_block_list(SnapshotId=snapshot_id)
+        block_list = ebs.list_snapshot_blocks(SnapshotId=snapshot_id)
     except Exception as e:
-        print("ERROR: Unable to list blocks:", e)
+        print("ERROR listing blocks:", e)
         return None
 
     output_path = os.path.join("memory_dumps", f"{snapshot_id}.raw")
@@ -59,18 +101,20 @@ def download_snapshot(snapshot_id):
 
     print(f"[+] Downloading snapshot blocks to {output_path}")
 
-    with open(output_path, "wb") as f:
-        for block in snapshot.get("Blocks", []):
-            block_index = block["BlockIndex"]
+    BLOCK_SIZE = 512 * 1024  # 512KiB
 
-            block_data = ebs.get_snapshot_block(
+    with open(output_path, "wb") as f:
+        for block in block_list.get("Blocks", []):
+            idx = block["BlockIndex"]
+
+            data = ebs.get_snapshot_block(
                 SnapshotId=snapshot_id,
-                BlockIndex=block_index,
+                BlockIndex=idx,
                 BlockToken=block["BlockToken"]
             )
 
-            f.seek(block_index * 512 * 256)  # 512 KB blocks
-            f.write(block_data["BlockData"])
+            f.seek(idx * BLOCK_SIZE)
+            f.write(data["BlockData"].read())   # <-- FIXED
 
     print("[+] Snapshot downloaded successfully.")
     return output_path

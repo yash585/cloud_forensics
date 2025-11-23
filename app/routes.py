@@ -54,3 +54,30 @@ def report():
 @routes.route("/results")
 def results():
     return render_template("results.html")
+
+
+@routes.route("/run-analysis", methods=["POST"])
+def run_analysis():
+    print("\n\n\n\n\nHIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n\n\n\nHeLLLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n\n\n\n")
+    instance_id = request.form.get("instance_id")
+
+    print("\n\n",instance_id,"\n\n")
+    # Step 1: Take snapshot
+    snapshot_result = handle_snapshot(instance_id)
+    snapshot_id = snapshot_result.get("snapshot_id")
+    print(snapshot_id,"\n\n\n\n\n")
+
+    # Step 2: Extract memory dump path (your extractor service will generate it)
+    dump_path = snapshot_result.get("dump_path")
+
+    print(dump_path,"\n\n\n\n\n")
+
+    # Step 3: Run volatility plugin
+    analysis_result = run_volatility_analysis(dump_path)
+
+    # Step 4: Render results page
+    return render_template(
+        "results.html",
+        snapshot_id=snapshot_id,
+        results=analysis_result.get("output", "")
+    )

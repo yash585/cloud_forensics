@@ -1,7 +1,7 @@
 aws:
-  region: "ap-south-1"
-  access_key: "YOUR_ACCESS_KEY"        # optional if using IAM role
-  secret_key: "YOUR_SECRET_KEY"        # optional if using IAM role
+  region: "us-east-1"
+  access_key: AKIAYBFOZHHKIMEM5XFB        # optional if using IAM role
+  secret_key: ozGuDeGIps7zyu8P/427ejqAVix3qLTyeX+aNAwQ        # optional if using IAM role
   snapshot_description: "Memory Forensics Snapshot"
 
 paths:
