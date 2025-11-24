@@ -2,16 +2,11 @@ import subprocess
 import os
 
 def run_plugins(dump_path):
-    """
-    Runs selected Volatility plugins on the memory dump.
-    Returns raw text output for each plugin.
-    """
 
     if not os.path.exists(dump_path):
         print("[-] Memory dump not found:", dump_path)
         return None
 
-    # Folder for saving raw plugin outputs
     output_dir = "analysis_output"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -20,7 +15,9 @@ def run_plugins(dump_path):
         "windows.pslist",
         "windows.pstree",
         "windows.netscan",
-        "windows.cmdline"
+        "windows.cmdline",
+        "windows.pslist.PsList"
+        "windows.pstree.PsTree",
     ]
 
     results = {}
@@ -29,9 +26,9 @@ def run_plugins(dump_path):
         try:
             print(f"[+] Running plugin: {plugin}")
 
-            # Volatility 3 command
+            #volatility
             cmd = [
-                "python3", "vol.py",
+                "python", "../../volatility3/vol.py",
                 "-f", dump_path,
                 plugin
             ]
@@ -54,3 +51,6 @@ def run_plugins(dump_path):
             results[plugin] = None
 
     return results
+
+
+run_plugins("../../memory_dumps/snap-0adee022bac8c1186.raw")

@@ -31,9 +31,7 @@ def take_snapshot_and_download(instance_id):
     )
 
     try:
-        # -------------------------------------------------
         # STEP 0: Get root volume
-        # -------------------------------------------------
         instance = ec2.describe_instances(InstanceIds=[instance_id])
         inst = instance["Reservations"][0]["Instances"][0]
 
@@ -50,9 +48,7 @@ def take_snapshot_and_download(instance_id):
 
         print(f"[+] Root volume: {root_volume}")
 
-        # -------------------------------------------------
         # STEP 1: Create REAL EC2 snapshot
-        # -------------------------------------------------
         print("[+] Creating snapshot using EC2 API...")
         snap_resp = ec2.create_snapshot(
             VolumeId=root_volume,
@@ -62,17 +58,13 @@ def take_snapshot_and_download(instance_id):
         snapshot_id = snap_resp["SnapshotId"]
         print(f"[+] Snapshot started: {snapshot_id}")
 
-        # -------------------------------------------------
         # STEP 2: Wait until completed
-        # -------------------------------------------------
         print("[+] Waiting for snapshot to complete...")
         waiter = ec2.get_waiter('snapshot_completed')
         waiter.wait(SnapshotIds=[snapshot_id])
         print("[+] Snapshot completed.")
 
-        # -------------------------------------------------
         # STEP 3: Use EBS direct API to read blocks
-        # -------------------------------------------------
         return download_snapshot(snapshot_id, aws_key, aws_secret, aws_region)
 
     except ClientError as e:
@@ -114,7 +106,7 @@ def download_snapshot(snapshot_id, aws_key, aws_secret, aws_region):
             )
 
             f.seek(idx * BLOCK_SIZE)
-            f.write(data["BlockData"].read())   # <-- FIXED
+            f.write(data["BlockData"].read())
 
     print("[+] Snapshot downloaded successfully.")
     return output_path

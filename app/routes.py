@@ -58,10 +58,9 @@ def results():
 
 @routes.route("/run-analysis", methods=["POST"])
 def run_analysis():
-    print("\n\n\n\n\nHIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n\n\n\nHeLLLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n\n\n\n")
     instance_id = request.form.get("instance_id")
 
-    print("\n\n",instance_id,"\n\n")
+    print("\n\n\n\n")
     # Step 1: Take snapshot
     snapshot_result = handle_snapshot(instance_id)
     snapshot_id = snapshot_result.get("snapshot_id")
